@@ -40,7 +40,7 @@ def main():
         return
     
     # 入力ファイルの確認
-    input_file = input("\\n📄 Excelファイルのパス (例: input/sample_input.xlsx): ").strip()
+    input_file = input("\n📄 Excelファイルのパス (例: input/sample_input.xlsx): ").strip()
     
     if not input_file:
         input_file = "input/sample_input.xlsx"
@@ -50,12 +50,12 @@ def main():
         return
     
     # システム要件の入力
-    print("\\n📝 システム要件を入力してください:")
+    print("\n📝 システム要件を入力してください:")
     print("   例: ECサイトの構築プロジェクト")
     print("       - ユーザー管理機能")
     print("       - 商品管理機能")
     print("       - 決済機能")
-    print("\\n入力してください (複数行可、空行で終了):")
+    print("\n入力してください (複数行可、空行で終了):")
     
     requirements_lines = []
     while True:
@@ -68,9 +68,9 @@ def main():
         print("❌ エラー: システム要件が入力されていません")
         return
     
-    system_requirements = "\\n".join(requirements_lines)
+    system_requirements = "\n".join(requirements_lines)
     
-    print("\\n" + "=" * 60)
+    print("\n" + "=" * 60)
     print("🔄 見積処理を開始します...")
     print("=" * 60)
     
@@ -84,7 +84,7 @@ def main():
             return
         
         if result.get("approved"):
-            print("\\n" + "=" * 60)
+            print("\n" + "=" * 60)
             print("✅ 見積処理が完了しました!")
             print("=" * 60)
             print(f"📊 出力ファイル: {result.get('final_excel_output')}")
@@ -99,16 +99,16 @@ def main():
                 print(f"   - 言語: {metadata.get('language', 'N/A')}")
                 print(f"   - 通貨: {metadata.get('currency', 'N/A')}")
         else:
-            print("\\n❌ 見積処理が完了しませんでした")
+            print("\n❌ 見積処理が完了しませんでした")
             if result.get("user_feedback"):
                 print(f"📝 最終フィードバック: {result['user_feedback']}")
             
     except KeyboardInterrupt:
-        print("\\n\\n⏹️ 処理が中断されました")
+        print("\n\n⏹️ 処理が中断されました")
     except Exception as e:
-        print(f"\\n❌ 予期しないエラー: {str(e)}")
+        print(f"\n❌ 予期しないエラー: {str(e)}")
     
-    print("\\n👋 ご利用ありがとうございました")
+    print("\n👋 ご利用ありがとうございました")
 
 
 def quick_demo():

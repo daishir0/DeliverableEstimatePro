@@ -83,10 +83,22 @@ class EffortEstimator:
     def process(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """工数見積とリスク調整"""
         try:
-            analyzed_deliverables = state["analyzed_deliverables"]
-            project_context = state["project_context"]
-            tech_assumptions = state["tech_assumptions"]
-            overall_assessment = state["overall_assessment"]
+            analyzed_deliverables = state.get("analyzed_deliverables", [])
+            project_context = state.get("project_context", {})
+            tech_assumptions = state.get("tech_assumptions", {})
+            overall_assessment = state.get("overall_assessment", {})
+            
+            # デフォルト値設定
+            if not analyzed_deliverables:
+                analyzed_deliverables = state.get("deliverables", [])
+                # 基本的な分析情報を追加
+                for deliverable in analyzed_deliverables:
+                    if not deliverable.get("category"):
+                        deliverable["category"] = "other"
+                    if not deliverable.get("complexity_level"):
+                        deliverable["complexity_level"] = "medium"
+                    if not deliverable.get("risk_factors"):
+                        deliverable["risk_factors"] = ["標準的なリスク"]
             
             effort_estimates = []
             
@@ -100,7 +112,7 @@ class EffortEstimator:
                 # 複雑度調整
                 complexity_adjustment = self._calculate_complexity_adjustment(
                     deliverable["complexity_level"],
-                    overall_assessment["project_complexity"]
+                    overall_assessment.get("project_complexity", "medium")
                 )
                 
                 # リスクバッファ計算

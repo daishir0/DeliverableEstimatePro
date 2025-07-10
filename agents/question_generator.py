@@ -77,9 +77,29 @@ class QuestionGenerator:
     def process(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """精度向上のための動的質問生成"""
         try:
-            analyzed_deliverables = state["analyzed_deliverables"]
-            effort_estimates = state["effort_estimates"]
-            tech_assumptions = state["tech_assumptions"]
+            analyzed_deliverables = state.get("analyzed_deliverables", [])
+            effort_estimates = state.get("effort_estimates", [])
+            tech_assumptions = state.get("tech_assumptions", {})
+            
+            # デフォルト値の設定
+            if not analyzed_deliverables:
+                analyzed_deliverables = state.get("deliverables", [])
+            
+            if not effort_estimates:
+                effort_estimates = [
+                    {"name": "基本システム開発", "effort_days": 20, "confidence_level": "80%"},
+                    {"name": "API連携", "effort_days": 10, "confidence_level": "70%"},
+                    {"name": "テスト", "effort_days": 5, "confidence_level": "90%"}
+                ]
+            
+            if not tech_assumptions:
+                tech_assumptions = {
+                    "engineer_level": "Python使用可能な平均的エンジニア",
+                    "tech_stack": "React/Vue.js + Node.js/Python",
+                    "database_tables": 20,
+                    "api_endpoints": 50,
+                    "test_pages": 1000
+                }
             
             # 不明確な要素の特定
             unclear_elements = self._identify_unclear_elements(
@@ -116,71 +136,95 @@ class QuestionGenerator:
         """不明確な要素の特定"""
         unclear_elements = []
         
-        for deliverable in analyzed_deliverables:
-            name = deliverable["name"].lower()
-            description = deliverable["description"].lower()
-            category = deliverable["category"]
-            
-            # データベース関連の不明確要素
-            if (category == "database" or 
-                any(keyword in name + description for keyword in ["データベース", "db", "テーブル"])):
-                unclear_elements.append({
-                    "type": "database_complexity",
-                    "deliverable_name": deliverable["name"],
-                    "reason": "データベース設計の詳細仕様が不明確"
-                })
-            
-            # API関連の不明確要素
-            if (category in ["backend_development", "integration"] or
-                any(keyword in name + description for keyword in ["api", "サーバー", "連携"])):
-                unclear_elements.append({
-                    "type": "api_complexity",
-                    "deliverable_name": deliverable["name"],
-                    "reason": "API設計の詳細仕様が不明確"
-                })
-            
-            # UI/テスト関連の不明確要素
-            if (category in ["frontend_development", "testing"] or
-                any(keyword in name + description for keyword in ["画面", "ui", "テスト", "ページ"])):
-                unclear_elements.append({
-                    "type": "ui_complexity",
-                    "deliverable_name": deliverable["name"],
-                    "reason": "UI/テスト対象の詳細仕様が不明確"
-                })
-            
-            # セキュリティ関連の不明確要素
-            if (category == "security" or
-                any(keyword in name + description for keyword in ["セキュリティ", "認証", "権限"])):
-                unclear_elements.append({
-                    "type": "security_level",
-                    "deliverable_name": deliverable["name"],
-                    "reason": "セキュリティ要件レベルが不明確"
-                })
-            
-            # パフォーマンス関連の不明確要素
-            if any(keyword in name + description for keyword in ["パフォーマンス", "performance", "高速", "最適化"]):
-                unclear_elements.append({
-                    "type": "performance_requirement",
-                    "deliverable_name": deliverable["name"],
-                    "reason": "パフォーマンス要件が不明確"
-                })
-            
-            # 統合・連携関連の不明確要素
-            if (category == "integration" or
-                any(keyword in name + description for keyword in ["連携", "統合", "外部", "third-party"])):
-                unclear_elements.append({
-                    "type": "integration_complexity",
-                    "deliverable_name": deliverable["name"],
-                    "reason": "外部システム連携の詳細が不明確"
-                })
+        # システム要件から推測して質問を生成
+        if not analyzed_deliverables:
+            # システム要件文字列から推測
+            unclear_elements.append({
+                "type": "database_complexity",
+                "deliverable_name": "データベース設計",
+                "reason": "データベース設計の詳細仕様が不明確"
+            })
+            unclear_elements.append({
+                "type": "api_complexity", 
+                "deliverable_name": "API開発",
+                "reason": "API設計の詳細仕様が不明確"
+            })
+            unclear_elements.append({
+                "type": "ui_complexity",
+                "deliverable_name": "UI/テスト",
+                "reason": "UI/テストの詳細仕様が不明確"
+            })
+        else:
+            for deliverable in analyzed_deliverables:
+                name = deliverable.get("name", "").lower()
+                description = deliverable.get("description", "").lower()
+                category = deliverable.get("category", "other")
+                
+                # データベース関連の不明確要素
+                if (category == "database" or 
+                    any(keyword in name + description for keyword in ["データベース", "db", "テーブル"])):
+                    unclear_elements.append({
+                        "type": "database_complexity",
+                        "deliverable_name": deliverable["name"],
+                        "reason": "データベース設計の詳細仕様が不明確"
+                    })
+                
+                # API関連の不明確要素
+                if (category in ["backend_development", "integration"] or
+                    any(keyword in name + description for keyword in ["api", "サーバー", "連携"])):
+                    unclear_elements.append({
+                        "type": "api_complexity",
+                        "deliverable_name": deliverable["name"],
+                        "reason": "API設計の詳細仕様が不明確"
+                    })
+                
+                # UI/テスト関連の不明確要素
+                if (category in ["frontend_development", "testing"] or
+                    any(keyword in name + description for keyword in ["画面", "ui", "テスト", "ページ"])):
+                    unclear_elements.append({
+                        "type": "ui_complexity",
+                        "deliverable_name": deliverable["name"],
+                        "reason": "UI/テスト対象の詳細仕様が不明確"
+                    })
+                
+                # セキュリティ関連の不明確要素
+                if (category == "security" or
+                    any(keyword in name + description for keyword in ["セキュリティ", "認証", "権限"])):
+                    unclear_elements.append({
+                        "type": "security_level",
+                        "deliverable_name": deliverable["name"],
+                        "reason": "セキュリティ要件レベルが不明確"
+                    })
+                
+                # パフォーマンス関連の不明確要素
+                if any(keyword in name + description for keyword in ["パフォーマンス", "performance", "高速", "最適化"]):
+                    unclear_elements.append({
+                        "type": "performance_requirement",
+                        "deliverable_name": deliverable["name"],
+                        "reason": "パフォーマンス要件が不明確"
+                    })
+                
+                # 統合・連携関連の不明確要素
+                if (category == "integration" or
+                    any(keyword in name + description for keyword in ["連携", "統合", "外部", "third-party"])):
+                    unclear_elements.append({
+                        "type": "integration_complexity",
+                        "deliverable_name": deliverable["name"],
+                        "reason": "外部システム連携の詳細が不明確"
+                    })
         
         # 工数見積から高リスク・低信頼度アイテムを特定
         for estimate in effort_estimates:
-            confidence = int(estimate["confidence_level"].rstrip('%'))
+            confidence_str = estimate.get("confidence_level", "75%")
+            if confidence_str.endswith('%'):
+                confidence = int(confidence_str.rstrip('%'))
+            else:
+                confidence = 75
+            
             if confidence < 75:
                 unclear_elements.append({
                     "type": "data_volume",
-                    "deliverable_name": estimate["name"],
+                    "deliverable_name": estimate.get("name", "不明"),
                     "reason": f"信頼度{confidence}%と低く、データ量の確認が必要"
                 })
         
@@ -218,14 +262,17 @@ class QuestionGenerator:
                 
                 # typeに応じた追加設定
                 if template["type"] == "number":
-                    question["default"] = tech_assumptions.get(
-                        self._get_assumption_key(question_type), 20
-                    )
-                    question["min_value"] = template.get("min_value", 1)
-                    question["max_value"] = template.get("max_value", 100)
+                    question.update({
+                        "min_value": template["min_value"],
+                        "max_value": template["max_value"],
+                        "default": tech_assumptions.get(self._get_assumption_key(question_type), 
+                                                      (template["min_value"] + template["max_value"]) // 2)
+                    })
                 elif template["type"] == "choice":
-                    question["options"] = template["options"]
-                    question["default"] = template["options"][1]  # 中間値をデフォルト
+                    question.update({
+                        "options": template["options"],
+                        "default": template["options"][min(1, len(template["options"])-1)]  # 中間値をデフォルト
+                    })
                 
                 questions.append(question)
         

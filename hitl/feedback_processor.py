@@ -30,7 +30,23 @@ class FeedbackProcessor:
     def process(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """フィードバック処理"""
         try:
-            user_feedback = state["user_feedback"]
+            user_feedback = state.get("user_feedback", "")
+            
+            # 空のフィードバックまたは自動承認の場合
+            if not user_feedback.strip():
+                return {
+                    **state,
+                    "approved": True,
+                    "feedback_analysis": {
+                        "original_feedback": "",
+                        "detected_categories": [],
+                        "specific_requests": [],
+                        "urgency_level": "low",
+                        "processing_timestamp": datetime.now().isoformat()
+                    },
+                    "revision_instructions": {},
+                    "feedback_processing_timestamp": datetime.now().isoformat()
+                }
             
             # フィードバック解析
             feedback_analysis = self._analyze_user_feedback(user_feedback)

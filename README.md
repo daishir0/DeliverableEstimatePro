@@ -1,10 +1,10 @@
-# DeliverableEstimate Pro
+# DeliverableEstimatePro
 
 🤖 AI駆動成果物見積もり自動化システム
 
 ## 📋 概要
 
-DeliverableEstimate Proは、Excel形式の成果物リストとシステム要件から、AI Multi-Agentシステムにより工数と金額を自動算出し、構造化された見積書を生成するシステムです。
+DeliverableEstimateProは、Excel形式の成果物リストとシステム要件から、AI Multi-Agentシステムにより工数と金額を自動算出し、構造化された見積書を生成するシステムです。
 
 ### 🎯 主な機能
 
@@ -96,7 +96,7 @@ $ python main.py
 
 ```
 ============================================================
-🚀 DeliverableEstimate Pro - AI駆動成果物見積もり自動化システム
+🚀 DeliverableEstimatePro - AI駆動成果物見積もり自動化システム
 ============================================================
 ✅ 設定確認完了
    - 人日単価: 50,000円

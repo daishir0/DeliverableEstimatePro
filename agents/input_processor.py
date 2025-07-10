@@ -38,6 +38,7 @@ class InputProcessor:
             return {
                 **state,
                 "deliverables": excel_data["deliverables"],
+                "analyzed_deliverables": excel_data["deliverables"],  # 分析済み成果物として追加
                 "project_context": project_context,
                 "env_config": env_config,
                 "tech_assumptions": tech_assumptions,

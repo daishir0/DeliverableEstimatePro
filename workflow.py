@@ -98,7 +98,7 @@ class EstimationWorkflow:
             }
         )
         
-        # フィードバック処理後のルーティング
+        # フィードバック処理後のルーティング（再帰制限対応）
         workflow.add_conditional_edges(
             "feedback_processor",
             self._determine_revision_target,
@@ -106,7 +106,8 @@ class EstimationWorkflow:
                 "deliverable_revision": "deliverable_analyzer",
                 "effort_revision": "effort_estimator",
                 "question_revision": "question_generator",
-                "complete_revision": "input_processor"
+                "complete_revision": "input_processor",
+                "max_iterations": END
             }
         )
         
@@ -155,7 +156,15 @@ class EstimationWorkflow:
             return "feedback"
     
     def _determine_revision_target(self, state: EstimationState) -> str:
-        """修正対象の決定"""
+        """修正対象の決定（再帰制限対応）"""
+        # 反復回数チェック
+        current_iterations = state.get("iteration_count", 0)
+        max_iterations = 5  # 最大反復回数
+        
+        if current_iterations >= max_iterations:
+            print(f"⚠️ 最大反復回数 ({max_iterations}) に達しました。処理を終了します。")
+            return "max_iterations"
+        
         feedback_analysis = state.get("feedback_analysis", {})
         detected_categories = feedback_analysis.get("detected_categories", [])
         
@@ -202,7 +211,7 @@ class EstimationSession:
         }
         
         try:
-            result = self.compiled_workflow.invoke(initial_state)
+            result = self.compiled_workflow.invoke(initial_state, config={"recursion_limit": 50})
             
             # 結果の後処理
             if result.get("approved"):
@@ -240,7 +249,7 @@ class EstimationSession:
                 "iteration_count": current_state.values.get("iteration_count", 0) + 1
             }
             
-            return self.compiled_workflow.invoke(updated_state, config=self.thread_config)
+            return self.compiled_workflow.invoke(updated_state, config={**self.thread_config, "recursion_limit": 50})
             
         except Exception as e:
             print(f"セッション継続エラー: {str(e)}")
